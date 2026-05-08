@@ -35,7 +35,7 @@ export type MigrationJobView = Omit<MigrationJob, 'sourceDbUrl' | 'targetDockerP
 
 // ── Persistence paths ─────────────────────────────────────────────────────────
 
-const DATA_DIR = process.env.STUDIO_DATA_DIR || path.join(process.cwd(), '.studio-data')
+const DATA_DIR = process.env.STUDIO_DATA_DIR || path.join(/*turbopackIgnore: true*/ process.cwd(), '.studio-data')
 const MIGRATIONS_DIR = path.join(DATA_DIR, 'migrations')
 
 function jobMetaPath(id: string) { return path.join(MIGRATIONS_DIR, `${id}.json`) }

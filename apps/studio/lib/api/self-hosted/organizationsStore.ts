@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-const DATA_DIR = process.env.STUDIO_DATA_DIR || path.join(process.cwd(), '.studio-data')
+const DATA_DIR = process.env.STUDIO_DATA_DIR || path.join(/*turbopackIgnore: true*/ process.cwd(), '.studio-data')
 const ORGS_FILE = path.join(DATA_DIR, 'organizations.json')
 
 export interface StoredOrganization {

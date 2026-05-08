@@ -6,7 +6,7 @@ import { spawn, spawnSync } from 'node:child_process'
 import { findDbContainer } from './migrationRunner'
 import { getStoredProjects } from './projectsStore'
 
-const DATA_DIR = process.env.STUDIO_DATA_DIR || path.join(process.cwd(), '.studio-data')
+const DATA_DIR = process.env.STUDIO_DATA_DIR || path.join(/*turbopackIgnore: true*/ process.cwd(), '.studio-data')
 const BACKUPS_DIR = path.join(DATA_DIR, 'backups')
 const SCHEDULES_FILE = path.join(DATA_DIR, 'backup-schedules.json')
 

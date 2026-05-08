@@ -19,8 +19,10 @@ function buildDockerEnv(dockerHost?: string): NodeJS.ProcessEnv {
   return env
 }
 
-const DATA_DIR = process.env.STUDIO_DATA_DIR || path.join(process.cwd(), '.studio-data')
-const STACKS_DIR = path.join(DATA_DIR, 'stacks')
+function getStacksDir() {
+  const DATA_DIR = process.env.STUDIO_DATA_DIR ?? path.join(process.cwd(), '.studio-data')
+  return path.join(DATA_DIR, 'stacks')
+}
 
 export default (req: NextApiRequest, res: NextApiResponse) => apiWrapper(req, res, handler)
 
@@ -80,7 +82,7 @@ async function handlePatch(req: NextApiRequest, res: NextApiResponse) {
   }
 
   // Update POSTGRES_PASSWORD in the stack .env file so future `docker compose up` picks it up
-  const envFile = path.join(STACKS_DIR, ref, '.env')
+  const envFile = path.join(getStacksDir(), ref, '.env')
   if (fs.existsSync(envFile)) {
     const contents = fs.readFileSync(envFile, 'utf-8')
     const updated = contents.replace(/^POSTGRES_PASSWORD=.*/m, `POSTGRES_PASSWORD=${password}`)

@@ -86,7 +86,7 @@ export interface StoredProject {
 }
 
 const DATA_DIR =
-  process.env.STUDIO_DATA_DIR || path.join(process.cwd(), '.studio-data')
+  process.env.STUDIO_DATA_DIR || path.join(/*turbopackIgnore: true*/ process.cwd(), '.studio-data')
 const PROJECTS_FILE = path.join(DATA_DIR, 'projects.json')
 
 function readFromDisk(): StoredProject[] {

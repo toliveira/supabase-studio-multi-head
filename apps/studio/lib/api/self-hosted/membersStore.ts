@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import { randomUUID, scryptSync, randomBytes, timingSafeEqual } from 'node:crypto'
 import path from 'node:path'
 
-const DATA_DIR = process.env.STUDIO_DATA_DIR || path.join(process.cwd(), '.studio-data')
+const DATA_DIR = process.env.STUDIO_DATA_DIR || path.join(/*turbopackIgnore: true*/ process.cwd(), '.studio-data')
 const MEMBERS_FILE = path.join(DATA_DIR, 'members.json')
 
 export const SELF_HOSTED_ROLES = [

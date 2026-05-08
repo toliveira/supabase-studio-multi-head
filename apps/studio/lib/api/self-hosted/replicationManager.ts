@@ -18,7 +18,7 @@ import type { StoredProject } from './projectsStore'
 import { getStoredProjectByRef } from './projectsStore'
 import { extractDockerHostname } from './orchestrator'
 
-const DATA_DIR = process.env.STUDIO_DATA_DIR || path.join(process.cwd(), '.studio-data')
+const DATA_DIR = process.env.STUDIO_DATA_DIR || path.join(/*turbopackIgnore: true*/ process.cwd(), '.studio-data')
 const STACKS_DIR = path.join(DATA_DIR, 'stacks')
 const MULTI_HEAD_COMPOSE_FILE = path.join(DATA_DIR, 'docker-compose.multi-head.yml')
 

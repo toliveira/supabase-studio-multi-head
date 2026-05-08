@@ -48,7 +48,7 @@ export type PBMigrationJobView = Omit<PBMigrationJob, 'pbAdminPassword' | 'supaS
 
 // ── Persistence ───────────────────────────────────────────────────────────────
 
-const DATA_DIR = process.env.STUDIO_DATA_DIR || path.join(process.cwd(), '.studio-data')
+const DATA_DIR = process.env.STUDIO_DATA_DIR || path.join(/*turbopackIgnore: true*/ process.cwd(), '.studio-data')
 const MIG_DIR = path.join(DATA_DIR, 'pb-migrations')
 
 function metaPath(id: string) { return path.join(MIG_DIR, `${id}.json`) }

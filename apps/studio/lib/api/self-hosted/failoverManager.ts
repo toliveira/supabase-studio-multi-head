@@ -20,7 +20,7 @@ import {
 } from './orchestrator'
 import { dropReplicationSlot, promoteStandby, setupReplication } from './replicationManager'
 
-const DATA_DIR = process.env.STUDIO_DATA_DIR || path.join(process.cwd(), '.studio-data')
+const DATA_DIR = process.env.STUDIO_DATA_DIR || path.join(/*turbopackIgnore: true*/ process.cwd(), '.studio-data')
 const STACKS_DIR = path.join(DATA_DIR, 'stacks')
 
 /**

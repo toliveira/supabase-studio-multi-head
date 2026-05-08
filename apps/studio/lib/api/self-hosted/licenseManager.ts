@@ -69,7 +69,7 @@ const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000
 
 // ── Persistence ───────────────────────────────────────────────────────────────
 
-const DATA_DIR = process.env.STUDIO_DATA_DIR || path.join(process.cwd(), '.studio-data')
+const DATA_DIR = process.env.STUDIO_DATA_DIR || path.join(/*turbopackIgnore: true*/ process.cwd(), '.studio-data')
 const LICENSE_FILE = path.join(DATA_DIR, 'license.json')
 
 function readPersistedKey(): string | null {

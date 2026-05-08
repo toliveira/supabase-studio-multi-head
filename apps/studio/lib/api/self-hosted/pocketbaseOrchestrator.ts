@@ -20,7 +20,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 
-const DATA_DIR = process.env.STUDIO_DATA_DIR || path.join(process.cwd(), '.studio-data')
+const DATA_DIR = process.env.STUDIO_DATA_DIR || path.join(/*turbopackIgnore: true*/ process.cwd(), '.studio-data')
 const STACKS_DIR = path.join(DATA_DIR, 'stacks')
 const MULTI_HEAD_HOST = process.env.MULTI_HEAD_HOST || 'localhost'
 

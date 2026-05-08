@@ -27,24 +27,26 @@ import { spawnSync } from 'node:child_process'
 // Configuration
 // ────────────────────────────────────────────────────────────
 
-const DATA_DIR = process.env.STUDIO_DATA_DIR || path.join(process.cwd(), '.studio-data')
-const STACKS_DIR = path.join(DATA_DIR, 'stacks')
-
 /**
- * Absolute host-side path of the studio-data directory.
- * Must match the host bind-mount source for /app/studio-data in the Studio container.
- * Set via HOST_STUDIO_DATA_DIR env var (written by start.sh / integrate.sh).
- * Falls back to DATA_DIR for native (non-Docker) runs where both paths are identical.
+ * All paths that use process.cwd() are resolved lazily at call-time, not at
+ * module load. This prevents Next.js NFT from statically tracing process.cwd()
+ * up the directory tree and accidentally bundling next.config.js.
  */
-const HOST_DATA_DIR = process.env.HOST_STUDIO_DATA_DIR || DATA_DIR
-
-/** docker-compose.yml used as a template for new stacks */
-const SOURCE_COMPOSE_FILE =
-  process.env.SUPABASE_COMPOSE_FILE ||
-  path.resolve(process.cwd(), '../../docker/docker-compose.yml')
-
-/** Modified compose file written once into DATA_DIR */
-const MULTI_HEAD_COMPOSE_FILE = path.join(DATA_DIR, 'docker-compose.multi-head.yml')
+function getConfig() {
+  const DATA_DIR = process.env.STUDIO_DATA_DIR ?? path.join(process.cwd(), '.studio-data')
+  return {
+    DATA_DIR,
+    STACKS_DIR: path.join(DATA_DIR, 'stacks'),
+    /** Absolute host-side path of the studio-data directory. */
+    HOST_DATA_DIR: process.env.HOST_STUDIO_DATA_DIR ?? DATA_DIR,
+    /** docker-compose.yml used as a template for new stacks */
+    SOURCE_COMPOSE_FILE:
+      process.env.SUPABASE_COMPOSE_FILE ??
+      path.resolve(process.cwd(), '../../docker/docker-compose.yml'),
+    /** Modified compose file written once into DATA_DIR */
+    MULTI_HEAD_COMPOSE_FILE: path.join(DATA_DIR, 'docker-compose.multi-head.yml'),
+  }
+}
 
 /**
  * Hostname by which other stacks' supavisor ports are reachable from inside
@@ -242,6 +244,7 @@ export function allocateNextPorts(usedKongPorts: number[]): PortAllocation {
  * Returns the HOST-SIDE absolute path to the copied volumes/ directory.
  */
 function exportVolumesToHost(sourceDir: string): string {
+  const { DATA_DIR, HOST_DATA_DIR } = getConfig()
   const srcVolumes = path.join(sourceDir, 'volumes')
   const dstVolumes = path.join(DATA_DIR, 'supabase-docker', 'volumes')
 
@@ -266,6 +269,7 @@ function exportVolumesToHost(sourceDir: string): string {
  * Returns the path to the generated file.
  */
 export function prepareMultiHeadComposeFile(): string {
+  const { DATA_DIR, SOURCE_COMPOSE_FILE, MULTI_HEAD_COMPOSE_FILE } = getConfig()
   if (!fs.existsSync(SOURCE_COMPOSE_FILE)) {
     throw new Error(
       `Docker Compose template not found: ${SOURCE_COMPOSE_FILE}\n` +
@@ -377,6 +381,7 @@ export interface LaunchOptions {
  */
 export async function launchProjectStack(opts: LaunchOptions): Promise<string> {
   const { ref, name, ports, credentials, docker_host } = opts
+  const { STACKS_DIR } = getConfig()
 
   const pgMetaCryptoKey = process.env.PG_META_CRYPTO_KEY
   if (!pgMetaCryptoKey) {
@@ -532,6 +537,7 @@ export async function teardownProjectStack(
   dockerProject: string,
   docker_host?: string
 ): Promise<void> {
+  const { MULTI_HEAD_COMPOSE_FILE, STACKS_DIR } = getConfig()
   const composeFile = MULTI_HEAD_COMPOSE_FILE
   const stackDir = path.join(STACKS_DIR, ref)
   const envFile = path.join(stackDir, '.env')
