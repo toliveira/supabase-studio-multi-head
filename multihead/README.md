@@ -541,6 +541,7 @@ Generate all at once: `bash utils/generate-keys.sh`
 | `STUDIO_DATA_DIR` | `./volumes/studio-data` | Host path for `projects.json` project registry |
 | `MULTI_HEAD_LICENSE_SECRET` | *(unset)* | HMAC secret used to verify license key signatures |
 | `NEXT_PUBLIC_STUDIO_AUTH` | *(unset)* | Set to `gotrue` to enable GoTrue-backed Studio login |
+| `NEXT_PUBLIC_GOTRUE_URL` | `http://localhost:8000/auth/v1` | GoTrue URL used by the browser for sign-in. **Must be set at image build time** (not runtime) — pass as `--build-arg` when building a custom image. The pre-built image falls back to `window.location.origin + /auth/v1` when unset. |
 | `STUDIO_GOTRUE_SERVICE_KEY` | *(unset)* | Service role JWT for GoTrue admin API (required in GoTrue mode) |
 
 ### Port allocation for new projects
@@ -757,3 +758,4 @@ multihead/docker-compose.yml  (or overlay on existing stack)
 | Failover not triggering | Check `MULTI_HEAD_LICENSE_SECRET` is set and license is Business/Enterprise (`smh license status`) |
 | Replica stuck in COMING_UP | Check Docker logs for `pg_basebackup` errors; verify Postgres is reachable on `postgres_port` |
 | GoTrue login fails | Verify `STUDIO_GOTRUE_SERVICE_KEY` is the service role JWT; check `/setup` page for first-run bootstrap |
+| Sign-in posts to `/undefined/token` (404) | `NEXT_PUBLIC_GOTRUE_URL` was not set at build time. Pass it as `--build-arg NEXT_PUBLIC_GOTRUE_URL=http://<host>/auth/v1` when building, or use the pre-built image (which falls back to `window.location.origin + /auth/v1`) |

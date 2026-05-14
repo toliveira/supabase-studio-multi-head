@@ -179,8 +179,17 @@ async function debuggableNavigatorLock<R>(
   }
 }
 
+// NEXT_PUBLIC_GOTRUE_URL is baked in at build time. When running a pre-built Docker
+// image where the var wasn't set at build time, fall back to the browser's own origin
+// + /auth/v1 — valid for all self-hosted deployments where Kong routes auth at that path.
+const resolvedGotrueUrl =
+  process.env.NEXT_PUBLIC_GOTRUE_URL ||
+  (typeof window !== 'undefined'
+    ? `${window.location.origin}/auth/v1`
+    : 'http://localhost:8000/auth/v1')
+
 export const gotrueClient = new AuthClient({
-  url: process.env.NEXT_PUBLIC_GOTRUE_URL,
+  url: resolvedGotrueUrl,
   storageKey: STORAGE_KEY,
   detectSessionInUrl: shouldDetectSessionInUrl,
   debug: debug ? (persistedDebug ? logIndexedDB : true) : false,

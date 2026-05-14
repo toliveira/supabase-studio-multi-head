@@ -303,6 +303,34 @@ pnpm run test # run tests
 pnpm run test -- --watch # run tests in watch mode
 ```
 
+## Troubleshooting
+
+### Sign-in fails with `POST /undefined/token` (404)
+
+Kong logs show requests to `/undefined/token?grant_type=password` or `/undefined/sso`.
+
+**Cause:** `NEXT_PUBLIC_GOTRUE_URL` is a Next.js public env var that is **baked into the browser bundle at build time**. Setting it as a runtime Docker environment variable (e.g. in `docker-compose.multihead.yml`) has no effect on a pre-built image — the browser-side code already has `undefined` compiled in.
+
+**Fix A — pass it as a build arg (recommended for custom builds):**
+
+```bash
+# Default for local / single-host deployments:
+# NEXT_PUBLIC_GOTRUE_URL=http://localhost:8000/auth/v1
+
+docker build . -f apps/studio/Dockerfile \
+  --build-arg NEXT_PUBLIC_GOTRUE_URL=http://<your-kong-host>/auth/v1 \
+  --target production \
+  -t studio-multihead:latest
+```
+
+**Fix B — use the pre-built image with a runtime config endpoint:**
+
+The released image includes a fallback: when `NEXT_PUBLIC_GOTRUE_URL` is absent from the bundle, the browser derives the GoTrue URL from its own origin (`window.location.origin + '/auth/v1'`). This works for any standard self-hosted deployment where Kong routes `/auth/v1` to GoTrue.
+
+If you have a non-standard routing setup, rebuild the image with Fix A above.
+
+---
+
 ## Running within a self-hosted environment
 
 Follow the [self-hosting guide](https://supabase.com/docs/guides/hosting/docker) to get started.
