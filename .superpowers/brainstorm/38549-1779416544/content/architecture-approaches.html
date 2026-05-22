@@ -1,0 +1,78 @@
+<h2>Architecture Approach</h2>
+<p class="subtitle">How should the schema analysis feature be structured?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Client-Side Analysis (Recommended)</h3>
+      <p>All similarity detection, recommendations, and migration generation run <strong>in the browser</strong>. API routes only serve mock data (or fetch schema from projects in production). The analysis engine lives in <code>lib/schema-analysis/</code> as pure functions.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4>
+          <ul>
+            <li>No server load for analysis computation</li>
+            <li>Instant feedback as user adjusts filters</li>
+            <li>Simpler API surface (just data serving)</li>
+            <li>Easier to test (pure functions)</li>
+            <li>Matches React Query pattern (fetch data, transform client-side)</li>
+          </ul>
+        </div>
+        <div class="cons"><h4>Cons</h4>
+          <ul>
+            <li>Large schemas may cause UI jank (mitigated by web workers)</li>
+            <li>Analysis results not shareable via URL without re-running</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Server-Side Analysis</h3>
+      <p>API routes do the heavy lifting — similarity detection, recommendations, migration generation all happen server-side. Client just renders results.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4>
+          <ul>
+            <li>Consistent results regardless of client device</li>
+            <li>Can cache analysis results server-side</li>
+            <li>Analysis results shareable via API</li>
+          </ul>
+        </div>
+        <div class="cons"><h4>Cons</h4>
+          <ul>
+            <li>More API routes, more server complexity</li>
+            <li>Slower iteration (every parameter change = API call)</li>
+            <li>Harder to test (need API mocking)</li>
+            <li>Doesn't match existing codebase patterns as well</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Hybrid (Spec's Approach)</h3>
+      <p>Follow the spec exactly: API routes for each operation (<code>/analyze</code>, <code>/matrix</code>, <code>/recommendations</code>, <code>/generate-migration</code>, <code>/apply-migration</code>). Analysis logic lives in <code>lib/</code> but is invoked by API handlers.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4>
+          <ul>
+            <li>Matches spec 1:1</li>
+            <li>API routes are thin wrappers around lib functions</li>
+            <li>Can switch between mock/real data at API layer</li>
+            <li>Migration apply needs server-side anyway</li>
+          </ul>
+        </div>
+        <div class="cons"><h4>Cons</h4>
+          <ul>
+            <li>More boilerplate than pure client-side</li>
+            <li>Some routes feel unnecessary for client-only analysis</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
