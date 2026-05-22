@@ -1,0 +1,86 @@
+<h2>Data Flow & Module Architecture</h2>
+<p class="subtitle">How data moves through the schema analysis system</p>
+
+<div class="mockup">
+  <div class="mockup-header">System Architecture</div>
+  <div class="mockup-body" style="padding: 24px; font-family: monospace; font-size: 13px; line-height: 1.6;">
+    <pre style="margin: 0; white-space: pre-wrap;">
+┌─────────────────────────────────────────────────────────────────┐
+│  UI Layer (components/schema-analysis/)                         │
+│                                                                 │
+│  SchemaAnalysisDashboard ─── SchemaMatrix                      │
+│         │                        │                              │
+│  RecommendationsPanel ──── MigrationPreview                    │
+│         │                        │                              │
+│  ProgressTracker                                                │
+└────────────────────┬────────────────────────────────────────────┘
+                     │ React Query hooks
+                     │ (data/schema-analysis/)
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  API Layer (pages/api/schema-analysis/)                         │
+│                                                                 │
+│  GET  /analyze ─────────► fetchAllSchemas + runAnalysis         │
+│  GET  /matrix ──────────► buildMatrix from cached analysis      │
+│  GET  /recommendations ─► generateRecommendations               │
+│  POST /generate-migration► generateMigrationScript              │
+│  POST /apply-migration ──► validateAndApply (dry-run/live)      │
+│                                                                 │
+│  ┌─ Dev: return mock data from __mocks__/data.ts               │
+│  └─ Prod: query real project databases via pg-meta              │
+└────────────────────┬────────────────────────────────────────────┘
+                     │ imports
+                     ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Core Logic (lib/schema-analysis/)                              │
+│                                                                 │
+│  types.ts ──────────── Type definitions                         │
+│  similarity.ts ─────── Levenshtein + synonym map + structure    │
+│  schema-analyzer.ts ── Fetch, cache, compare schemas            │
+│  recommendation-engine.ts ── Generate prioritized actions       │
+│  migration-generator.ts ── SQL generation + rollback + validate │
+│  __mocks__/data.ts ─── Copy of MOCK_DATA_FOR_TESTING.ts        │
+└─────────────────────────────────────────────────────────────────┘
+    </pre>
+  </div>
+</div>
+
+<div style="margin-top: 24px;"></div>
+
+<div class="mockup">
+  <div class="mockup-header">Similarity Algorithm: Weighted Composite</div>
+  <div class="mockup-body" style="padding: 24px; font-family: monospace; font-size: 13px;">
+    <pre style="margin: 0; white-space: pre-wrap;">
+totalScore = (nameSimilarity × 0.3) + (structureSimilarity × 0.5) + (semanticSimilarity × 0.2)
+
+┌─ Name Similarity (30%) ──────────────────────────────────┐
+│  1. Normalize: lowercase, strip underscores/hyphens      │
+│  2. Exact match → 100%                                   │
+│  3. Synonym map check (users↔user_accounts, etc.) → 90%  │
+│  4. Levenshtein distance → scaled 0-100%                 │
+│  5. Substring containment bonus (+15%)                    │
+└──────────────────────────────────────────────────────────┘
+
+┌─ Structure Similarity (50%) ─────────────────────────────┐
+│  1. Column count ratio                                    │
+│  2. Column name overlap (Jaccard coefficient)             │
+│  3. Column type matching for overlapping columns          │
+│  4. Constraint similarity (PK, FK, UNIQUE patterns)       │
+│  5. Index similarity                                      │
+└──────────────────────────────────────────────────────────┘
+
+┌─ Semantic Similarity (20%) ──────────────────────────────┐
+│  1. Foreign key relationship patterns                     │
+│  2. Column naming conventions match                       │
+│  3. Data type distribution similarity                     │
+│  4. Timestamp column patterns (created_at vs created_ts)  │
+└──────────────────────────────────────────────────────────┘
+
+Thresholds:
+  ≥ 90%  →  "Exact Match" (green)
+  ≥ 75%  →  "Likely Similar" (yellow) — flagged for review
+  ≥ 50%  →  "Partial Match" (orange)
+  < 50%  →  "Different" (no highlight)
+    </pre>
+  </div>
+</div>
