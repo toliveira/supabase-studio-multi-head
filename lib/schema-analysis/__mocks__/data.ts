@@ -1,0 +1,15 @@
+export {
+  PROJECT_A_SCHEMA,
+  PROJECT_B_SCHEMA,
+  PROJECT_C_SCHEMA,
+  PROJECT_D_SCHEMA,
+  ALL_PROJECTS_SCHEMAS,
+  ALL_PROJECTS,
+  getAllSchemas,
+  getProjectSchema,
+  getTableSchema,
+  validateSimilarityScore,
+  validateRecommendation,
+  generateLargeSchema,
+  mockData,
+} from '@/MOCK_DATA_FOR_TESTING'
